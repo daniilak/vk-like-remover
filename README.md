@@ -1,6 +1,21 @@
 
 # Удаление своих лайков во ВКонтакте
 
+
+## Настройка
+
+* Настройка пакетов
+```
+pip3 install -r requirements.txt
+```
+
+* Получить access_token от VK API можно [здесь](https://vkhost.github.io/), либо напрямую [здесь](https://oauth.vk.com/authorize?client_id=6121396&scope=73728&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1) 
+
+* Указать в файле .env
+
+* Для прохождения Капчи нужно зарегистрироваться [здесь](https://rucaptcha.com/enterpage) и указать токен в файле .env
+
+
 ## Где найти материалы, отмеченные моими реакциями?
 
 > Для получения списка материалов в VK API нет метода, поэтому только такой способ
@@ -27,8 +42,3 @@ JSON.stringify(data)
 python3 main.py
 ```
 * Повторять до тех пор, пока реакции не исчезнут
-
-## Установка пакетов
-```
-pip3 install -r requirements.txt
-```
