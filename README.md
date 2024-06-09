@@ -30,10 +30,18 @@ pip3 install -r requirements.txt
 ```
 const items = document.querySelectorAll(".PostHeaderSubtitle__link,.post_link");
 const data = [];
-items.forEach(item => {
-    data.push(item.getAttribute("href"));
-});
-JSON.stringify(data)
+items.forEach(item => {data.push(item.getAttribute("href"));});
+const text = JSON.stringify(data);
+
+if (confirm('Скопировать ссылки на лайки в буфер обмена?')) {
+    setTimeout(() => {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Успешно! А теперь бегом удалять их!!!');
+        }).catch(err => {
+            console.error('Что-то не так...', err);
+        });
+    }, 100);
+};
 ```
 
 * Скопировать результат и вставить в input.json
