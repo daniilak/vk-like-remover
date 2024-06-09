@@ -121,7 +121,7 @@ class VKLikesManager:
             print("Капча")
             c = CaptchaSolver(self.get_base64_image(captcha_img))
             c.create_tasks()
-            captcha_key = c.whiler()
+            captcha_key = c.wait_for_captcha()
             response = self.request_vk(
                 owner_id, post_id, type_remove, captcha_sid, captcha_key
             )
