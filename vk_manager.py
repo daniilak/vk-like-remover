@@ -10,7 +10,7 @@ from captcha_solver import CaptchaSolver
 
 load_dotenv()
 
-VK_TOKEN = os.getenv("VK_TOKEN")
+VK_TOKEN = os.getenv('VK_TOKEN')
 
 
 class VKLikesManager:
@@ -24,14 +24,14 @@ class VKLikesManager:
         """
 
         try:
-            with open("input.json", "r") as f:
+            with open('input.json', 'r') as f:
                 filedata = f.read()
         except Exception as e:
             print(e)
             exit()
 
         if not filedata:
-            exit("Файл пустой")
+            exit('Файл пустой')
 
         if filedata[0] == "'":
             filedata = filedata[1:-1]
@@ -42,7 +42,7 @@ class VKLikesManager:
             exit()
 
         self.len_data = len(self.data)
-        print(f"Всего {self.len_data} шт")
+        print(f'Всего {self.len_data} шт')
 
     def check_captcha(self, response: dict) -> tuple:
         """
@@ -51,10 +51,10 @@ class VKLikesManager:
         :param response: Ответ от VK API.
         :return: URL изображения капчи и идентификатор капчи.
         """
-        if "error" in response:
-            if response["error"]["error_code"] == 14:
-                captcha_sid = response["error"]["captcha_sid"]
-                captcha_img = response["error"]["captcha_img"]
+        if 'error' in response:
+            if response['error']['error_code'] == 14:
+                captcha_sid = response['error']['captcha_sid']
+                captcha_img = response['error']['captcha_img']
                 return captcha_img, captcha_sid
         return None, None
 
@@ -69,15 +69,15 @@ class VKLikesManager:
         with urllib.request.urlopen(captcha_img) as response:
             image_data = response.read()
 
-        return b64encode(image_data).decode("ascii")
+        return b64encode(image_data).decode('ascii')
 
     def request_vk(
         self,
         owner_id: str,
         post_id: str,
         type_remove: str,
-        captcha_sid: str = "",
-        captcha_key: str = "",
+        captcha_sid: str = '',
+        captcha_key: str = '',
     ) -> dict:
         """
         Отправка запроса на удаление лайка в VK.
@@ -89,18 +89,18 @@ class VKLikesManager:
         :return: Ответ от VK API.
         """
         data = {
-            "access_token": VK_TOKEN,
-            "type": type_remove,
-            "owner_id": owner_id,
-            "item_id": post_id,
-            "v": 5.236,
+            'access_token': VK_TOKEN,
+            'type': type_remove,
+            'owner_id': owner_id,
+            'item_id': post_id,
+            'v': 5.199,
         }
         if captcha_key:
-            data["captcha_key"] = captcha_key
+            data['captcha_key'] = captcha_key
         if captcha_sid:
-            data["captcha_sid"] = captcha_sid
+            data['captcha_sid'] = captcha_sid
 
-        response = requests.post("https://api.vk.com/method/likes.delete", data=data)
+        response = requests.post('https://api.vk.com/method/likes.delete', data=data)
         return response.json()
 
     def remove(self, owner_id: str, post_id: str, type_remove: str) -> bool:
@@ -114,11 +114,12 @@ class VKLikesManager:
         try:
             response = self.request_vk(owner_id, post_id, type_remove)
         except Exception as e:
+            print(e)
             return False
 
         captcha_img, captcha_sid = self.check_captcha(response)
         if captcha_img and captcha_sid:
-            print("Капча")
+            print('Капча')
             c = CaptchaSolver(self.get_base64_image(captcha_img))
             c.create_tasks()
             captcha_key = c.wait_for_captcha()
@@ -132,23 +133,28 @@ class VKLikesManager:
         """
         Обработка всех лайков из списка данных. Ограничение 3 запроса в секунду. Не рекомендую использовать паралелльные запросы.
         """
+        item: str
         for index, item in enumerate(self.data):
-            print(f"Обработка материала №{index+1} из {self.len_data} ")
-            if "?reply" in item:
-                item = item.replace("https://vk.com/wall", "")
-                owner_id, item_id = item.split("_")
-                item_id = item_id.split("?reply=")[1]
-                type_remove = "comment"
-            elif "/video" in item:
-                owner_id, item_id = item.replace("/video", "").split("_")
-                type_remove = "video"
-            elif "/wall" in item:
-                owner_id, item_id = item.replace("/wall", "").split("_")
-                type_remove = "post"
-            elif "/market" in item:
-                "/market-223730782?w=product-223730782_9205234"
-                owner_id, item_id = item.split("product")[1].split("_")
+            print(f'Обработка материала №{index+1} из {self.len_data} ')
+            if '?reply' in item:
+                item = item.replace('https://vk.com/wall', '')
+                owner_id, item_id = item.split('_')
+                item_id = item_id.split('?reply=')[1].split('&thread=')[0]
+                type_remove = 'comment'
+            elif '/photo' in item:
+                owner_id, item_id = item.replace('/photo', '').split('_')
+                type_remove = 'photo'
+            elif '/video' in item:
+                owner_id, item_id = item.replace('/video', '').split('_')
+                type_remove = 'video'
+            elif '/wall' in item:
+                owner_id, item_id = item.replace('/wall', '').split('_')
+                type_remove = 'post'
+            elif '/market' in item:
+                owner_id, item_id = item.split('product')[1].split('_')
+                type_remove = 'market'
             else:
                 continue
+
             self.remove(owner_id, item_id, type_remove)
-            sleep(0.3)
+            sleep(.3)
